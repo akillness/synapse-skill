@@ -369,7 +369,7 @@ curl -X POST http://localhost:8000/api/v1/workflow \
     },
     "analyst": {
       "service": "gemini",
-      "model": "gemini-3-pro",
+      "model": "gemini-3-pro-preview",
       "description": "Analyzes content and performs code reviews"
     },
     "coder": {
