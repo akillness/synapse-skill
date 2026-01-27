@@ -4,7 +4,7 @@ description: "Multi-AI Agent Orchestration System with configurable models and r
 license: MIT
 metadata:
   author: jangyoung
-  version: "2.1.0"
+  version: "2.2.0"
   updated: "2026-01-27"
   tags:
     - ai-orchestration
@@ -123,6 +123,74 @@ For multi-agent orchestration, use Synapse skill:
 - Ensure Docker containers are running: docker ps | grep synaps
 - Use /api/v1/workflow for full pipeline execution
 ```
+
+### For OpenCode (oh-my-opencode.json)
+
+Add Synapse-optimized agent configuration to `~/.config/opencode/oh-my-opencode.json`:
+
+```json
+{
+  "$schema": "https://raw.githubusercontent.com/code-yeongyu/oh-my-opencode/master/assets/oh-my-opencode.schema.json",
+  "agents": {
+    "synapse-planner": {
+      "model": "google/antigravity-claude-sonnet-4-5"
+    },
+    "synapse-analyst": {
+      "model": "google/antigravity-gemini-3-pro-high"
+    },
+    "synapse-coder": {
+      "model": "google/antigravity-claude-sonnet-4-5-thinking"
+    },
+    "synapse-reviewer": {
+      "model": "google/antigravity-gemini-3-pro-high"
+    },
+    "synapse-executor": {
+      "model": "openai/gpt-5.2-codex-high"
+    }
+  }
+}
+```
+
+### OpenCode Model Provider Configuration
+
+Add to `~/.config/opencode/opencode.json` for custom Synapse models:
+
+```json
+{
+  "provider": {
+    "synapse": {
+      "name": "Synapse Local",
+      "api": "openai",
+      "options": {
+        "baseURL": "http://localhost:8000/api/v1/"
+      },
+      "models": {
+        "claude-planner": {
+          "name": "Claude Planner (Synapse)",
+          "limit": { "context": 200000, "output": 64000 }
+        },
+        "gemini-analyst": {
+          "name": "Gemini Analyst (Synapse)",
+          "limit": { "context": 1000000, "output": 65536 }
+        },
+        "codex-executor": {
+          "name": "Codex Executor (Synapse)",
+          "limit": { "context": 272000, "output": 128000 }
+        }
+      }
+    }
+  }
+}
+```
+
+### OpenCode Skill Integration
+
+The skill is automatically loaded when symlinked to `~/.config/opencode/skills/synapse`.
+
+**Trigger phrases for OpenCode:**
+- "orchestrate agents" → Activates Synapse workflow
+- "multi-agent workflow" → Starts parallel or pipeline execution
+- "run synapse" → Executes full workflow
 
 ---
 

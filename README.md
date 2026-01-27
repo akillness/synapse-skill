@@ -3,7 +3,8 @@
 AI Agent skill for multi-agent orchestration with configurable models and role-based workflows.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Version](https://img.shields.io/badge/version-2.1.0-blue.svg)](https://github.com/akillness/synapse-skill)
+[![Version](https://img.shields.io/badge/version-2.2.0-blue.svg)](https://github.com/akillness/synapse-skill)
+[![OpenCode](https://img.shields.io/badge/OpenCode-Compatible-orange.svg)](https://opencode.ai)
 [![Claude 4.5](https://img.shields.io/badge/Claude-4.5-purple.svg)](https://anthropic.com)
 [![Cursor Compatible](https://img.shields.io/badge/Cursor-Compatible-green.svg)](https://cursor.sh)
 
@@ -23,6 +24,7 @@ Synapse is a distributed AI agent orchestration system that coordinates three sp
 - **Role-Based Assignment**: Assign specific models to specific tasks
 - **Agentic Workflows**: Support for parallel, pipeline, and swarm patterns
 - **Claude Swarms Compatible**: Similar orchestration patterns to Claude's TeammateTool
+- **OpenCode Compatible**: `oh-my-opencode.json` agent configuration + skill integration
 - **Cursor IDE Compatible**: `.cursor/rules/` integration for Cursor agents
 - **Claude Code Compatible**: CLAUDE.md integration for Claude Code workflows
 
@@ -51,8 +53,25 @@ cd synapse-skill
 ### For OpenCode
 
 ```bash
+# 1. Symlink the skill
 ln -s $(pwd) ~/.config/opencode/skills/synapse
+
+# 2. (Optional) Add agent configuration to oh-my-opencode.json
+cat >> ~/.config/opencode/oh-my-opencode.json << 'EOF'
+{
+  "agents": {
+    "synapse-planner": { "model": "google/antigravity-claude-sonnet-4-5" },
+    "synapse-analyst": { "model": "google/antigravity-gemini-3-pro-high" },
+    "synapse-reviewer": { "model": "google/antigravity-gemini-3-pro-high" }
+  }
+}
+EOF
 ```
+
+**OpenCode Trigger Phrases:**
+- "orchestrate agents" → Synapse workflow
+- "multi-agent workflow" → Parallel/pipeline execution
+- "run synapse" → Full workflow
 
 ### For Claude Code
 
