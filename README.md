@@ -30,6 +30,16 @@ Synapse is a distributed AI agent orchestration system that coordinates three sp
 
 ## Installation
 
+### Universal Installation (Recommended)
+
+Works with **all CLI terminals** (Claude Code, Cursor, OpenCode, etc.):
+
+```bash
+npx skills add https://github.com/akillness/synapse-skill --skill
+```
+
+This automatically installs the skill for your AI agent environment.
+
 ### Prerequisites
 
 - Docker and Docker Compose
