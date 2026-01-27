@@ -3,24 +3,28 @@
 AI Agent skill for multi-agent orchestration with configurable models and role-based workflows.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Version](https://img.shields.io/badge/version-2.0.0-blue.svg)](https://github.com/jangyoung/synapse-skill)
+[![Version](https://img.shields.io/badge/version-2.1.0-blue.svg)](https://github.com/akillness/synapse-skill)
+[![Claude 4.5](https://img.shields.io/badge/Claude-4.5-purple.svg)](https://anthropic.com)
+[![Cursor Compatible](https://img.shields.io/badge/Cursor-Compatible-green.svg)](https://cursor.sh)
 
 ## Overview
 
-Synapse is a distributed AI agent orchestration system that coordinates three specialized services with configurable models:
+Synapse is a distributed AI agent orchestration system that coordinates three specialized services with configurable models (Updated January 2026):
 
 | Agent | Role | Default Model | Capabilities |
 |-------|------|---------------|--------------|
-| **Claude** | Orchestrator/Planner | claude-sonnet-4 | Task planning, architecture design, code generation |
-| **Gemini** | Analyst/Reviewer | gemini-2.5-pro | Large context analysis (>200k), code review |
+| **Claude** | Orchestrator/Planner | claude-sonnet-4.5 | Task planning, architecture design, code generation |
+| **Gemini** | Analyst/Reviewer | gemini-3-pro-preview | Large context analysis (>1M tokens), code review |
 | **Codex** | Executor | gpt-5.2 | Sandboxed command execution, builds, tests |
 
 ## Features
 
-- **Multi-Model Support**: Configure different models for each service
+- **Multi-Model Support**: Configure different models for each service (Claude 4.5, Gemini 3, GPT-5.2)
 - **Role-Based Assignment**: Assign specific models to specific tasks
 - **Agentic Workflows**: Support for parallel, pipeline, and swarm patterns
 - **Claude Swarms Compatible**: Similar orchestration patterns to Claude's TeammateTool
+- **Cursor IDE Compatible**: `.cursor/rules/` integration for Cursor agents
+- **Claude Code Compatible**: CLAUDE.md integration for Claude Code workflows
 
 ## Installation
 
@@ -57,6 +61,23 @@ mkdir -p ~/.agents/skills
 ln -s $(pwd) ~/.agents/skills/synapse
 ```
 
+### For Cursor IDE
+
+Create `.cursor/rules/synapse.mdc`:
+
+```markdown
+---
+description: Synapse AI Agent Orchestration
+globs: ["**/*"]
+alwaysApply: true
+---
+
+When orchestrating multi-agent tasks, use Synapse endpoints:
+- Plan: POST http://localhost:8000/api/v1/claude/plan
+- Code: POST http://localhost:8000/api/v1/claude/code
+- Review: POST http://localhost:8000/api/v1/gemini/review
+```
+
 ### For Other Agents
 
 Copy `SKILL.md` to your agent's skill directory or reference it directly.
@@ -78,15 +99,15 @@ export SYNAPSE_GATEWAY_URL="http://localhost:8000"
 Each service supports model selection via the `model` parameter:
 
 ```bash
-# Claude with specific model
+# Claude 4.5 with specific model
 curl -X POST http://localhost:8000/api/v1/claude/plan \
-  -d '{"task": "Build API", "model": "claude-opus-4"}'
+  -d '{"task": "Build API", "model": "claude-opus-4.5"}'
 
-# Gemini with specific model
+# Gemini 3 with specific model
 curl -X POST http://localhost:8000/api/v1/gemini/review \
   -d '{"code": "...", "model": "gemini-3-pro-preview"}'
 
-# Codex with specific model
+# GPT-5.2 with specific model
 curl -X POST http://localhost:8000/api/v1/codex/execute \
   -d '{"command": "pytest", "model": "gpt-5.2-mini"}'
 ```
@@ -96,9 +117,9 @@ curl -X POST http://localhost:8000/api/v1/codex/execute \
 ```json
 {
   "model_config": {
-    "planner": "claude-sonnet-4",
-    "analyst": "gemini-2.5-pro",
-    "coder": "claude-sonnet-4",
+    "planner": "claude-sonnet-4.5",
+    "analyst": "gemini-3-pro-preview",
+    "coder": "claude-sonnet-4.5",
     "reviewer": "gemini-3-pro-preview",
     "executor": "gpt-5.2"
   }
@@ -152,23 +173,29 @@ curl -X POST http://localhost:8000/api/v1/workflow \
 | `POST /api/v1/codex/execute` | Execute command | `command`, `timeout`, `model` |
 | `POST /api/v1/workflow` | Full pipeline | `task`, `workflow_type`, `model_config` |
 
-## Available Models
+## Available Models (2026)
 
-### Claude
-- `claude-sonnet-4` - Balanced (default)
-- `claude-opus-4` - Maximum capability
-- `claude-haiku-3.5` - Fast responses
+### Claude 4.5
+| Model | API ID | Best For | Cost |
+|-------|--------|----------|------|
+| `claude-opus-4.5` | `claude-opus-4-5-20251101` | Production code, sophisticated agents | $5/$25 per M |
+| `claude-sonnet-4.5` | `claude-sonnet-4-5-20250929` | Task planning, code generation (default) | $3/$15 per M |
+| `claude-haiku-4.5` | `claude-haiku-4-5-20251201` | Fast responses, 90% Sonnet perf | $0.80/$4 per M |
 
-### Gemini
-- `gemini-2.5-pro` - Large context (default)
-- `gemini-3-pro-preview` - Latest flagship
-- `gemini-3-flash` - Speed-critical
-- `gemini-2.5-flash` - Cost-efficient
+### Gemini 3
+| Model | Best For | Cost |
+|-------|----------|------|
+| `gemini-3-pro-preview` | Complex reasoning, 76.2% SWE-bench (default) | $2-4/M |
+| `gemini-3-flash` | Sub-second latency | Lower |
+| `gemini-2.5-pro` | Large context analysis | $1.25/M |
+| `gemini-2.5-flash` | Cost-efficient | $0.15/M |
 
-### Codex
-- `gpt-5.2` - Flagship (default)
-- `gpt-5.2-mini` - Cost-efficient
-- `gpt-5.1-thinking` - Complex reasoning
+### GPT-5.2 (Codex)
+| Model | Best For | Cost |
+|-------|----------|------|
+| `gpt-5.2` | Software engineering (default) | $1.25/$10 per M |
+| `gpt-5.2-mini` | Cost-efficient (4x usage) | $0.25/$2 per M |
+| `gpt-5.1-thinking` | Ultra-complex reasoning | Higher |
 
 ## Troubleshooting
 
@@ -200,9 +227,11 @@ See [SKILL.md](./SKILL.md) for complete API documentation, workflow patterns, an
 
 ## Related Projects
 
-- [Synapse](https://github.com/jangyoung/Synapse) - The backend orchestration system
+- [Synapse](https://github.com/akillness/Synapse) - The backend orchestration system
 - [Oh My Claude Code](https://github.com/ohmyclaudecode/ohmyclaudecode) - Multi-agent orchestration framework
 - [Claude Swarm SKILL.md](https://gist.github.com/kieranklaassen/4f2aba89594a4aea4ad64d753984b2ea) - TeammateTool orchestration patterns
+- [KERNEL for Cursor](https://github.com/ariaxhan/kernel-cursor) - Self-evolving Cursor configuration system
+- [KERNEL for Claude](https://github.com/ariaxhan/kernel-claude) - Self-evolving Claude Code configuration
 
 ## License
 

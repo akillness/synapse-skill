@@ -1,10 +1,11 @@
 ---
 name: synapse
-description: "Multi-AI Agent Orchestration System with configurable models and role-based workflows. Use when you need to coordinate multiple AI agents (Claude, Gemini, Codex) for complex tasks like planning, code generation, analysis, review, and execution. Supports agentic workflow patterns: parallel specialists, pipeline, and swarm orchestration. Triggers: 'orchestrate agents', 'multi-agent workflow', 'plan and execute', 'code review pipeline', 'run synapse', 'agentic workflow'."
+description: "Multi-AI Agent Orchestration System with configurable models and role-based workflows. Use when you need to coordinate multiple AI agents (Claude, Gemini, Codex) for complex tasks like planning, code generation, analysis, review, and execution. Supports agentic workflow patterns: parallel specialists, pipeline, and swarm orchestration. Compatible with Claude Code, Cursor, and OpenCode. Triggers: 'orchestrate agents', 'multi-agent workflow', 'plan and execute', 'code review pipeline', 'run synapse', 'agentic workflow'."
 license: MIT
 metadata:
   author: jangyoung
-  version: "2.0.0"
+  version: "2.1.0"
+  updated: "2026-01-27"
   tags:
     - ai-orchestration
     - multi-agent
@@ -12,6 +13,8 @@ metadata:
     - code-generation
     - code-review
     - swarm
+    - claude-4.5
+    - cursor-compatible
 ---
 
 # Synapse AI Agent Orchestration Skill
@@ -22,8 +25,8 @@ Synapse is a distributed AI agent system that orchestrates three specialized ser
 
 | Agent | Role | Capabilities | Default Model |
 |-------|------|--------------|---------------|
-| **Claude** | Orchestrator/Planner | Task planning, architecture design, code generation | claude-sonnet-4 |
-| **Gemini** | Analyst/Reviewer | Large context analysis (>200k), code review, security audits | gemini-2.5-pro |
+| **Claude** | Orchestrator/Planner | Task planning, architecture design, code generation | claude-sonnet-4.5 |
+| **Gemini** | Analyst/Reviewer | Large context analysis (>1M tokens), code review, security audits | gemini-3-pro-preview |
 | **Codex** | Executor | Command execution, build processes, automated testing | gpt-5.2 |
 
 ## When to Apply
@@ -85,26 +88,72 @@ export SYNAPSE_HOME="$HOME/Synapse"
 export SYNAPSE_GATEWAY_URL="http://localhost:8000"
 ```
 
+### For Cursor IDE
+
+Create `.cursor/rules/synapse.mdc` in your project:
+
+```markdown
+---
+description: Synapse AI Agent Orchestration
+globs: ["**/*"]
+alwaysApply: true
+---
+
+# Synapse Skill Integration
+
+When orchestrating multi-agent tasks, use Synapse endpoints:
+- Plan: POST http://localhost:8000/api/v1/claude/plan
+- Code: POST http://localhost:8000/api/v1/claude/code
+- Analyze: POST http://localhost:8000/api/v1/gemini/analyze
+- Review: POST http://localhost:8000/api/v1/gemini/review
+- Execute: POST http://localhost:8000/api/v1/codex/execute
+
+Use @planner for task breakdown, @reviewer for code review.
+```
+
+### For Claude Code (CLAUDE.md)
+
+Add to your `~/.claude/CLAUDE.md`:
+
+```markdown
+## Synapse Integration
+
+For multi-agent orchestration, use Synapse skill:
+- Health check: curl http://localhost:8000/health
+- Ensure Docker containers are running: docker ps | grep synaps
+- Use /api/v1/workflow for full pipeline execution
+```
+
 ---
 
 ## Model Configuration
 
-### Claude Service Models
+### Claude Service Models (2026)
+
+| Model | API ID | Best For | Context | Cost (Input/Output) |
+|-------|--------|----------|---------|---------------------|
+| `claude-opus-4.5` | `claude-opus-4-5-20251101` | Complex reasoning, production code, sophisticated agents | 200K | $5/$25 per M |
+| `claude-sonnet-4.5` | `claude-sonnet-4-5-20250929` | Task planning, code generation, architecture (Recommended) | 1M | $3/$15 per M |
+| `claude-haiku-4.5` | `claude-haiku-4-5-20251201` | Fast responses, simple tasks, 90% of Sonnet performance | 200K | $0.80/$4 per M |
+
+**Claude 4.5 Highlights:**
+- **Opus 4.5**: State-of-the-art coding (80%+ SWE-bench), best for agents and computer use
+- **Sonnet 4.5**: 1M token context window (5x increase), extended thinking mode
+- **Haiku 4.5**: Cost-effective with 90% of Sonnet's performance
+
+### Gemini Service Models (2026)
 
 | Model | Best For | Context | Cost |
 |-------|----------|---------|------|
-| `claude-sonnet-4` | Task planning, code generation, architecture | 200K | $3/$15 |
-| `claude-opus-4` | Complex reasoning, detailed analysis | 200K | $15/$75 |
-| `claude-haiku-3.5` | Fast responses, simple tasks | 200K | $0.25/$1.25 |
+| `gemini-3-pro-preview` | Complex reasoning, coding, agentic tasks (76.2% SWE-bench) | 1M | $2-4/M |
+| `gemini-3-flash` | Sub-second latency, speed-critical, distilled from 3 Pro | 1M | Lower |
+| `gemini-2.5-pro` | Large context analysis, code review, mature stability | 1M | $1.25/M |
+| `gemini-2.5-flash` | Cost-efficient, high-volume ($0.15/M input) | 1M | $0.15/M |
 
-### Gemini Service Models
-
-| Model | Best For | Context | Cost |
-|-------|----------|---------|------|
-| `gemini-3-pro-preview` | Complex reasoning, coding, agentic tasks | 1M | $2-4/M |
-| `gemini-3-flash` | Sub-second latency, speed-critical | 1M | Lower |
-| `gemini-2.5-pro` | Large context analysis, code review | 1M | $1.25/M |
-| `gemini-2.5-flash` | Cost-efficient, high-volume | 1M | $0.15/M |
+**Gemini 3 Highlights:**
+- 35% better at software engineering tasks vs 2.5 Pro
+- "Vibe coding" support for rapid prototyping
+- Knowledge cutoff: January 2025
 
 ### Codex Service Models
 
@@ -247,17 +296,17 @@ curl -X POST http://localhost:8000/api/v1/workflow \
   "roles": {
     "planner": {
       "service": "claude",
-      "model": "claude-sonnet-4",
+      "model": "claude-sonnet-4.5",
       "description": "Creates task plans and architecture designs"
     },
     "analyst": {
       "service": "gemini",
-      "model": "gemini-2.5-pro",
+      "model": "gemini-3-pro",
       "description": "Analyzes content and performs code reviews"
     },
     "coder": {
       "service": "claude",
-      "model": "claude-sonnet-4",
+      "model": "claude-sonnet-4.5",
       "description": "Generates implementation code"
     },
     "reviewer": {
