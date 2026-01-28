@@ -4,8 +4,8 @@ description: "Multi-AI Agent Orchestration System with configurable models and r
 license: MIT
 metadata:
   author: jangyoung
-  version: "2.2.0"
-  updated: "2026-01-27"
+  version: "2.3.0"
+  updated: "2026-01-28"
   tags:
     - ai-orchestration
     - multi-agent
@@ -678,3 +678,154 @@ Agent orchestrates:
 3. Generate summary report
 4. Propose fixes via Claude
 ```
+
+---
+
+## Current Status (v2.3.0)
+
+### Service Health (Verified 2026-01-28)
+
+| Service | Endpoint | Status | Response |
+|---------|----------|--------|----------|
+| Gateway | `/health` | ✅ healthy | `{"status": "healthy"}` |
+| Claude | `/api/v1/claude/plan` | ✅ success | 5-step plan generated |
+| Gemini | `/api/v1/gemini/analyze` | ✅ success | Code analysis complete |
+| Gemini | `/api/v1/gemini/review` | ✅ success | Score 95/100 |
+| Codex | `/api/v1/codex/execute` | ✅ success | Command executed |
+
+### Connection Pool Metrics
+
+```
+Claude Pool          Gemini Pool          Codex Pool
+┌────────────┐       ┌────────────┐       ┌────────────┐
+│ Size: 2    │       │ Size: 2    │       │ Size: 2    │
+│ Avail: 2   │       │ Avail: 2   │       │ Avail: 2   │
+│ Acquired:3 │       │ Acquired:4 │       │ Acquired:3 │
+│ Released:3 │       │ Released:4 │       │ Released:3 │
+└────────────┘       └────────────┘       └────────────┘
+
+Load Balancer Status: All endpoints healthy (1/1 each)
+Avg Response Time (Claude): 21.47ms
+```
+
+### Architecture Overview
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                         SYNAPSE WORKFLOW ARCHITECTURE                        │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+                            ┌──────────────┐
+                            │   Gateway    │ :8000
+                            │   (REST)     │
+                            └──────┬───────┘
+                                   │
+            ┌──────────────────────┼──────────────────────┐
+            │                      │                      │
+            ▼                      ▼                      ▼
+   ┌────────────────┐    ┌────────────────┐    ┌────────────────┐
+   │     Claude     │    │     Gemini     │    │     Codex      │
+   │     :5011      │    │     :5012      │    │     :5013      │
+   │    (gRPC)      │    │    (gRPC)      │    │    (gRPC)      │
+   └────────────────┘    └────────────────┘    └────────────────┘
+          │                      │                      │
+          ▼                      ▼                      ▼
+   ┌────────────┐         ┌────────────┐         ┌────────────┐
+   │   /plan    │         │  /analyze  │         │  /execute  │
+   │   /code    │         │  /review   │         │            │
+   └────────────┘         └────────────┘         └────────────┘
+```
+
+---
+
+## Improvement Roadmap
+
+### 1. Unified Workflow Endpoint Enhancement
+
+**Current**: Individual service calls required
+```bash
+curl /api/v1/claude/plan → curl /api/v1/claude/code → curl /api/v1/gemini/review → curl /api/v1/codex/execute
+```
+
+**Planned**: Single workflow call with `workflow_type` parameter
+```bash
+curl /api/v1/workflow -d '{"task": "...", "workflow_type": "pipeline|parallel|swarm"}'
+```
+
+### 2. MCP Tool Direct Integration
+
+**Current**: curl-based access via Bash tool
+```
+Bash → curl → Gateway → Service
+```
+
+**Planned**: Native MCP server tools
+```
+mcp__synapse__plan → Gateway → Claude
+mcp__synapse__analyze → Gateway → Gemini
+mcp__synapse__execute → Gateway → Codex
+```
+
+### 3. Enhanced Error Handling
+
+**Current**: Simple error response
+```json
+{"detail": "Service not ready"}
+```
+
+**Planned**: Rich error with retry guidance
+```json
+{
+  "error": "Service not ready",
+  "retry_after": 5,
+  "fallback_available": true,
+  "fallback_service": "gemini-2.5-flash"
+}
+```
+
+### 4. SSE Streaming Response Support
+
+**Current**: Full response wait
+```python
+response = await service.plan(request)  # Waits for completion
+```
+
+**Planned**: Real-time progress streaming
+```python
+async for chunk in service.plan_stream(request):
+    yield chunk  # Real-time progress updates
+```
+
+### 5. Redis Caching Layer
+
+**Planned Architecture**:
+```
+              Request
+                 │
+                 ▼
+          ┌─────────────┐     Cache Hit      ┌─────────────┐
+          │   Gateway   │ ─────────────────▶ │    Redis    │
+          └──────┬──────┘                    └─────────────┘
+                 │ Cache Miss
+                 ▼
+          ┌─────────────┐
+          │   Service   │
+          └─────────────┘
+```
+
+### 6. Quick Commands (Planned)
+
+```bash
+# Shorthand commands for common operations
+synapse plan "Build REST API"     # → Claude Plan
+synapse review "def foo(): ..."   # → Gemini Review
+synapse run "pytest tests/"       # → Codex Execute
+synapse flow "Create feature X"   # → Full Pipeline
+```
+
+### 7. Auto Service Detection
+
+**Planned Features**:
+- Docker container status check on skill activation
+- Automatic unhealthy service restart prompt
+- Service dependency validation
