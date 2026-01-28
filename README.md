@@ -43,18 +43,18 @@ This automatically installs the skill for your AI agent environment.
 ### Prerequisites
 
 - Docker and Docker Compose
-- [Synapse](https://github.com/jangyoung/Synapse) services running
+- [Synapse](https://github.com/akillness/Synapse) services running
 
 ### Quick Start
 
 ```bash
 # 1. Clone Synapse (the backend services)
-git clone https://github.com/jangyoung/Synapse.git ~/Synapse
+git clone https://github.com/akillness/Synapse.git ~/Synapse
 cd ~/Synapse
 docker compose up -d
 
 # 2. Clone synapse-skill
-git clone https://github.com/jangyoung/synapse-skill.git
+git clone https://github.com/akillness/synapse-skill.git
 cd synapse-skill
 
 # 3. Install for your AI agent

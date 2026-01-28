@@ -51,7 +51,7 @@ Use this skill when:
 
 ```bash
 # Clone Synapse (if not already)
-git clone https://github.com/jangyoung/Synapse.git ~/Synapse
+git clone https://github.com/akillness/Synapse.git ~/Synapse
 cd ~/Synapse
 
 # Start services
@@ -68,7 +68,7 @@ curl -s http://localhost:8000/health
 
 ```bash
 # Clone synapse-skill
-git clone https://github.com/jangyoung/synapse-skill.git
+git clone https://github.com/akillness/synapse-skill.git
 
 # For OpenCode
 ln -s $(pwd)/synapse-skill ~/.config/opencode/skills/synapse
